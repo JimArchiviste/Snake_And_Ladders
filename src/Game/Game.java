@@ -6,6 +6,15 @@ import java.util.Scanner;
 
 import Cases.Case;
 
+/**
+ * Main class of the game.
+ * 
+ * @author DUGAT Ghislain
+ * 
+ * @version 1.0
+ * 
+ */
+
 public class Game {
 
 	private ArrayList<Player> players;
@@ -13,11 +22,17 @@ public class Game {
 	private Set set;
 	private Scanner sc;
 	
+	/**
+	 * Constructor of the game, which create a list of player.
+	 */
 	Game() {
 		this.players = new ArrayList<Player>();
 	}
 	
-	private void initialplayer() {
+	/**
+	 * Initialize the players.
+	 */
+	public void initialplayer() {
 		int nb_players = 0;
 		while(true){
 			try {
@@ -37,6 +52,10 @@ public class Game {
 			this.players.add(new Player(name, i+1));
 		}
 	}
+	
+	/**
+	 * Initialize the set.
+	 */
 	
 	public void initialSet() {
 		int length = 0;
@@ -80,8 +99,11 @@ public class Game {
 		this.set = new Set(list);
 	}
 	
-	private void initialDice(){
-		
+	/**
+	 * Initialize the dice.
+	 * 
+	 */
+	public void initialDice(){
 		int nb_faces = 0;
 		while(true){
 			try {
@@ -97,7 +119,10 @@ public class Game {
 		this.dice = new Dice(nb_faces);
 	}
 	
-	private void initialize(){
+	/**
+	 * Main function to initialize the set, the dice and the players.
+	 */
+	public void initialize(){
 
 		initialSet();
 		initialDice();
@@ -105,29 +130,59 @@ public class Game {
 		
 	}
 	
-	private void start() {
+	/**
+	 * Play the game turn by turn.
+	 * 
+	 * @return boolean
+	 */
+	public boolean play() {
 		int i = 1;
 		while(true) {
 			System.out.println("");
 			System.out.println("Turn " + i + " :");
 			System.out.println("");
-			if(makeTurn()) break;
+			if(makeTurn()) {
+				System.out.println("Do you want to make another game ? [y/n]");
+				sc = new Scanner (System.in);
+				String ans = sc.nextLine();
+				while (!(ans.toUpperCase().equals("Y") || ans.toUpperCase().equals("N"))) {
+					System.out.println("Sorry, I didn't understand your answer, please just press \"y\" or \"n\".");
+					ans = sc.nextLine();
+				}
+				if (ans.toUpperCase().equals("N")) {
+					return false;
+				}
+				else {
+					return true;
+				}
+			}
 			i++;
 		}
 	}
 	
-	private boolean makeTurn(){
+	
+	/**
+	 * Do a turn. Return true if there is a winner.
+	 * @return boolean
+	 */
+	public boolean makeTurn(){
 		ArrayList<Player> winners = new ArrayList<Player>();
 		for (Player p : this.players) {
-			this.displaySet();
+			if (p.getTurn() == 1) this.displaySet();
 			int current_dice = this.dice.randomNumber();
 			System.out.println(p.getPseudo() + " is throwing a dice : " + current_dice);
-			p.goOn(current_dice);
-			if (p.getPosition() >= this.set.getCases().size()){
+			p.goForward(current_dice);
+			this.displaySet();
+			if (p.getPosition() == this.set.getCases().size() - 1){
 				winners.add(p);
 			}
+			else if (p.getPosition() > this.set.getCases().size() - 1){
+				p.goTo(0);
+			}
 			else {
-				this.set.getCases().get(p.getPosition()).doSomething(p);;
+				while (this.set.getCases().get(p.getPosition()).doSomething(p)) {
+					this.displaySet();
+				}
 			}
 		}
 		if (!winners.isEmpty()) {
@@ -150,7 +205,10 @@ public class Game {
 		}
 	}
 	
-	private void displaySet() {
+	/**
+	 * Display the set in the console in ASCII art.
+	 */
+	public void displaySet() {
 		System.out.println("");
 		String disSet = "";
 		int i = 0;
@@ -168,16 +226,22 @@ public class Game {
 		System.out.println(disSet);
 		System.out.println("");
 		try {
-			Thread.sleep(1000);
+			Thread.sleep(800);
 		} catch (InterruptedException e) {
 			e.printStackTrace();
 		}
 	}
 
+	/**
+	 * Main function of the class Game.
+	 * @param args
+	 */
 	public static void main(String[] args){
 		Game game = new Game();
 		game.initialize();
-		game.start();
+		while (game.play()) {
+			game.initialize();
+		}
 	}
 	
 }
